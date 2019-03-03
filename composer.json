@@ -1,0 +1,15 @@
+{
+    "name": "poggit/libasynql",
+    "description": "Asynchronous MySQL access library for PocketMine plugins.",
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "SOFe",
+            "email": "sofe2038@gmail.com"
+        }
+    ],
+    "require": {
+			"sof3/pocketmine-mp"
+		}
+}

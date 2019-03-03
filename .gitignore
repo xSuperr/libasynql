@@ -2,3 +2,4 @@
 .sami/
 *.tmp
 *.bak
+/vendor/
