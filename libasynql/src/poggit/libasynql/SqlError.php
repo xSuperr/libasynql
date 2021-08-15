@@ -25,6 +25,7 @@ namespace poggit\libasynql;
 use Closure;
 use Exception;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionFunction;
 use RuntimeException;
 use function get_class;
@@ -55,10 +56,10 @@ class SqlError extends RuntimeException{
 	 */
 	public const STAGE_RESPONSE = "RESPONSE";
 
-	private $stage;
-	private $errorMessage;
-	private $query;
-	private $args;
+	private string $stage;
+	private string $errorMessage;
+	private ?string $query;
+	private ?array $args;
 
 	public function __construct(string $stage, string $errorMessage, string $query = null, array $args = null){
 		$this->stage = $stage;
@@ -106,11 +107,12 @@ class SqlError extends RuntimeException{
 		return $this->args;
 	}
 
-	/**
-	 * Flattens the trace such that the exception can be serialized
-	 *
-	 * @see https://gist.github.com/Thinkscape/805ba8b91cdce6bcaf7c Exception flattening solution by Artur Bodera
-	 */
+    /**
+     * Flattens the trace such that the exception can be serialized
+     *
+     * @see https://gist.github.com/Thinkscape/805ba8b91cdce6bcaf7c Exception flattening solution by Artur Bodera
+     * @throws ReflectionException
+     */
 	protected function flattenTrace() : void{
 		$traceProperty = (new ReflectionClass(Exception::class))->getProperty('trace');
 		$traceProperty->setAccessible(true);
@@ -135,7 +137,7 @@ class SqlError extends RuntimeException{
 			}
 			unset($call);
 			$traceProperty->setValue($this, $trace);
-		}while($exception = $this->getPrevious());
+		}while($this->getPrevious());
 		$traceProperty->setAccessible(false);
 	}
 }

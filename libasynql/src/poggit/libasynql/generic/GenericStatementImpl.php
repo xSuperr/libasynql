@@ -24,6 +24,7 @@ namespace poggit\libasynql\generic;
 
 use AssertionError;
 use InvalidArgumentException;
+use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use poggit\libasynql\GenericStatement;
 use poggit\libasynql\SqlDialect;
@@ -39,21 +40,17 @@ use function str_replace;
 use function uksort;
 
 abstract class GenericStatementImpl implements GenericStatement, JsonSerializable{
+	protected string $name;
+	protected string $query;
 	/** @var string */
-	protected $name;
-	/** @var string */
-	protected $query;
-	/** @var string */
-	protected $doc;
+	protected string $doc;
 	/** @var GenericVariable[] */
-	protected $variables;
-	/** @var string|null */
-	protected $file;
-	/** @var int */
-	protected $lineNo;
+	protected array $variables;
+	protected string|array|null $file;
+	protected int $lineNo;
 
 	/** @var string[] */
-	protected $varPositions = [];
+	protected array $varPositions = [];
 
 	public function getName() : string{
 		return $this->name;
@@ -79,16 +76,6 @@ abstract class GenericStatementImpl implements GenericStatement, JsonSerializabl
 		return $this->lineNo;
 	}
 
-	/**
-	 * @param string            $dialect
-	 * @param string            $name
-	 * @param string            $query
-	 * @param string            $doc
-	 * @param GenericVariable[] $variables
-	 * @param string|null       $file
-	 * @param int               $lineNo
-	 * @return GenericStatementImpl
-	 */
 	public static function forDialect(string $dialect, string $name, string $query, string $doc, array $variables, ?string $file, int $lineNo) : GenericStatementImpl{
 		static $classMap = [
 			SqlDialect::MYSQL => MysqlStatementImpl::class,
@@ -123,7 +110,7 @@ abstract class GenericStatementImpl implements GenericStatement, JsonSerializabl
 
 			if($quotesState !== null){
 				if($thisChar === "\\"){
-					++$i; // skip one character
+					++$i;
 					continue;
 				}
 				if($thisChar === $quotesState){
@@ -144,13 +131,12 @@ abstract class GenericStatementImpl implements GenericStatement, JsonSerializabl
 					if(mb_strpos($this->query, $variable->getName(), $i + 1) === $i + 1){
 						$positions[$i] = $name = $variable->getName();
 						break;
-						// if multiple variables match, the first one i.e. the longest one wins
 					}
 				}
 
 				if($name !== null){
 					$usedNames[$name] = true;
-					$i += mb_strlen($name); // skip the name
+					$i += mb_strlen($name);
 				}
 			}
 		}
@@ -159,7 +145,7 @@ abstract class GenericStatementImpl implements GenericStatement, JsonSerializabl
 		$lastPos = 0;
 		foreach($positions as $pos => $name){
 			$newQuery .= mb_substr($this->query, $lastPos, $pos - $lastPos);
-			$this->varPositions[mb_strlen($newQuery)] = $name; // we aren't using $pos here, because we want the position in the cleaned string, not the position in the original query string
+			$this->varPositions[mb_strlen($newQuery)] = $name;
 			$lastPos = $pos + mb_strlen($name) + 1;
 		}
 		$newQuery .= mb_substr($this->query, $lastPos);
@@ -199,13 +185,15 @@ abstract class GenericStatementImpl implements GenericStatement, JsonSerializabl
 		return $query;
 	}
 
-	private static function getType($value){
+	private static function getType($value): string
+    {
 		return is_object($value) ? get_class($value) : gettype($value);
 	}
 
 	protected abstract function formatVariable(GenericVariable $variable, $value, ?string $placeHolder, array &$outArgs) : string;
 
-	public function jsonSerialize(){
+	#[ArrayShape(["name" => "string", "query" => "string", "doc" => "string", "variables" => "array|\poggit\libasynql\generic\GenericVariable[]", "file" => "mixed", "lineNo" => "int"])] public function jsonSerialize(): array
+    {
 		return [
 			"name" => $this->name,
 			"query" => $this->query,

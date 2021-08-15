@@ -50,8 +50,7 @@ use const SQLITE3_NULL;
 use const SQLITE3_TEXT;
 
 class Sqlite3Thread extends SqlSlaveThread{
-	/** @var string */
-	private $path;
+	private string $path;
 
 	public static function createFactory(string $path) : Closure{
 		return function(SleeperNotifier $notifier, QuerySendQueue $send, QueryRecvQueue $recv) use ($path){
@@ -64,45 +63,42 @@ class Sqlite3Thread extends SqlSlaveThread{
 		parent::__construct($notifier, $send, $recv);
 	}
 
-	protected function createConn(&$sqlite) : ?string{
+	protected function createConn(&$resource) : ?string{
 		try{
-			$sqlite = new SQLite3($this->path);
-			$sqlite->busyTimeout(60000); // default value in SQLite2
+			$resource = new SQLite3($this->path);
+			$resource->busyTimeout(60000); // default value in SQLite2
 			return null;
 		}catch(Exception $e){
 			return $e->getMessage();
 		}
 	}
 
-	protected function executeQuery($sqlite, int $mode, string $query, array $params) : SqlResult{
-		assert($sqlite instanceof SQLite3);
-		$stmt = $sqlite->prepare($query);
+	protected function executeQuery(mixed $resource, int $mode, string $query, array $params) : SqlResult{
+		assert($resource instanceof SQLite3);
+		$stmt = $resource->prepare($query);
 		if($stmt === false){
-			throw new SqlError(SqlError::STAGE_PREPARE, $sqlite->lastErrorMsg(), $query, $params);
+			throw new SqlError(SqlError::STAGE_PREPARE, $resource->lastErrorMsg(), $query, $params);
 		}
 		foreach($params as $paramName => $param){
 			$bind = $stmt->bindValue($paramName, $param);
 			if(!$bind){
-				throw new SqlError(SqlError::STAGE_PREPARE, "when binding $paramName: " . $sqlite->lastErrorMsg(), $query, $params);
+				throw new SqlError(SqlError::STAGE_PREPARE, "when binding $paramName: " . $resource->lastErrorMsg(), $query, $params);
 			}
 		}
 		$result = $stmt->execute();
-		if($result === false){
-			throw new SqlError(SqlError::STAGE_EXECUTE, $sqlite->lastErrorMsg(), $query, $params);
-		}
-		switch($mode){
+        switch($mode){
 			case SqlThread::MODE_GENERIC:
 				$ret = new SqlResult();
 				$result->finalize();
 				$stmt->close();
 				return $ret;
 			case SqlThread::MODE_CHANGE:
-				$ret = new SqlChangeResult($sqlite->changes());
+				$ret = new SqlChangeResult($resource->changes());
 				$result->finalize();
 				$stmt->close();
 				return $ret;
 			case SqlThread::MODE_INSERT:
-				$ret = new SqlInsertResult($sqlite->changes(), $sqlite->lastInsertRowID());
+				$ret = new SqlInsertResult($resource->changes(), $resource->lastInsertRowID());
 				$result->finalize();
 				$stmt->close();
 				return $ret;

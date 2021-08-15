@@ -23,31 +23,24 @@ declare(strict_types=1);
 namespace poggit\libasynql\base;
 
 use InvalidArgumentException;
+use JetBrains\PhpStorm\Pure;
 use pocketmine\Server;
 use pocketmine\snooze\SleeperNotifier;
 use poggit\libasynql\SqlThread;
 
 class SqlThreadPool implements SqlThread{
-	/** @var SleeperNotifier */
-	private $notifier;
+	private SleeperNotifier $notifier;
 	/** @var callable */
 	private $workerFactory;
 	/** @var SqlSlaveThread[] */
-	private $workers = [];
-	/** @var int */
-	private $workerLimit;
+	private array $workers = [];
+	private int $workerLimit;
 
-	/** @var QuerySendQueue */
-	private $bufferSend;
-	/** @var QueryRecvQueue */
-	private $bufferRecv;
+	private QuerySendQueue $bufferSend;
+	private QueryRecvQueue $bufferRecv;
 
-	/** @var DataConnectorImpl|null */
-	private $dataConnector = null;
+	private ?DataConnectorImpl $dataConnector = null;
 
-	/**
-	 * @param DataConnectorImpl $dataConnector
-	 */
 	public function setDataConnector(DataConnectorImpl $dataConnector): void {
 		$this->dataConnector = $dataConnector;
 	}
@@ -92,7 +85,6 @@ class SqlThreadPool implements SqlThread{
 	public function addQuery(int $queryId, int $mode, string $query, array $params) : void{
 		$this->bufferSend->scheduleQuery($queryId, $mode, $query, $params);
 
-		// check if we need to increase worker size
 		foreach($this->workers as $worker){
 			if(!$worker->isBusy()){
 				return;
@@ -114,15 +106,15 @@ class SqlThreadPool implements SqlThread{
 		}
 	}
 
-	public function connCreated() : bool{
+	#[Pure] public function connCreated() : bool{
 		return $this->workers[0]->connCreated();
 	}
 
-	public function hasConnError() : bool{
+	#[Pure] public function hasConnError() : bool{
 		return $this->workers[0]->hasConnError();
 	}
 
-	public function getConnError() : ?string{
+	#[Pure] public function getConnError() : ?string{
 		return $this->workers[0]->getConnError();
 	}
 

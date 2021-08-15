@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace poggit\libasynql\generic;
 
+use Exception;
 use InvalidArgumentException;
 use RuntimeException;
 use function array_map;
@@ -42,7 +43,10 @@ class MysqlStatementImpl extends GenericStatementImpl{
 		return "mysql";
 	}
 
-	protected function formatVariable(GenericVariable $variable, $value, ?string $placeHolder, array &$outArgs) : string{
+    /**
+     * @throws Exception
+     */
+    protected function formatVariable(GenericVariable $variable, $value, ?string $placeHolder, array &$outArgs) : string{
 		if($variable->isList()){
 			assert(is_array($value));
 			if(empty($value)){

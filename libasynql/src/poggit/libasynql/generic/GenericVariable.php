@@ -24,6 +24,7 @@ namespace poggit\libasynql\generic;
 
 use InvalidArgumentException;
 use InvalidStateException;
+use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use function assert;
 use function in_array;
@@ -48,16 +49,15 @@ class GenericVariable implements JsonSerializable{
 	public const TIME_0 = "0";
 	public const TIME_NOW = "NOW";
 
-	protected $name;
-	protected $list = false;
-	protected $canEmpty = false;
-	protected $nullable = false;
-	protected $type;
-	/** @var string|int|float|bool|null */
-	protected $default = null;
+	protected string $name;
+	protected bool $list = false;
+	protected bool $canEmpty = false;
+	protected bool $nullable = false;
+	protected string $type;
+	protected string|int|bool|null|float $default = null;
 
 	public function __construct(string $name, string $type, ?string $default){
-		if(strpos($name, ":") !== false){
+		if(str_contains($name, ":")){
 			throw new InvalidArgumentException("Colon is disallowed in a variable name");
 		}
 		$this->name = $name;
@@ -108,8 +108,9 @@ class GenericVariable implements JsonSerializable{
 						throw new InvalidArgumentException("Invalid timestamp default");
 					}
 					$this->default = $default;
+                    break;
 
-				default:
+                default:
 					throw new InvalidArgumentException("Unknown type \"$type\"");
 			}
 		}
@@ -157,10 +158,8 @@ class GenericVariable implements JsonSerializable{
 		return $this->type;
 	}
 
-	/**
-	 * @return mixed
-	 */
-	public function getDefault(){
+	public function getDefault(): string|int|bool|null|float
+    {
 		return $this->default;
 	}
 
@@ -192,7 +191,8 @@ class GenericVariable implements JsonSerializable{
 		return true;
 	}
 
-	public function jsonSerialize(){
+	#[ArrayShape(["name" => "string", "isList" => "bool", "canEmpty" => "bool", "type" => "string", "default" => "mixed"])] public function jsonSerialize(): array
+    {
 		return [
 			"name" => $this->name,
 			"isList" => $this->list,

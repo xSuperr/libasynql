@@ -46,17 +46,17 @@ interface DataConnector{
 	 */
 	public function isLoggingQueries() : bool;
 
-	/**
-	 * Loads pre-formatted queries from a readable stream resource.
-	 *
-	 * The implementation will close the stream after reading.
-	 *
-	 * @param resource $fh       a stream that supports <code>feof()</code>, <code>fgets()</code> and <code>fclose()</code>.
-	 * @param string   $fileName the filename providing the stream, only used for debugging and documentation purposes
-	 *
-	 * @throws GenericStatementFileParseException if the file contains a syntax error or compile error
-	 * @throws InvalidArgumentException if the file introduces statements that duplicate the names of those previously loaded
-	 */
+    /**
+     * Loads pre-formatted queries from a readable stream resource.
+     *
+     * The implementation will close the stream after reading.
+     *
+     * @param resource $fh a stream that supports <code>feof()</code>, <code>fgets()</code> and <code>fclose()</code>.
+     * @param string|null $fileName the filename providing the stream, only used for debugging and documentation purposes
+     *
+     * @throws GenericStatementFileParseException if the file contains a syntax error or compile error
+     * @throws InvalidArgumentException if the file introduces statements that duplicate the names of those previously loaded
+     */
 	public function loadQueryFile($fh, string $fileName = null) : void;
 
 	/**
@@ -95,7 +95,7 @@ interface DataConnector{
 	 * Executes a query that changes data.
 	 *
 	 * @param string        $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[]       $args      the variables as defined in the {@link GenericPreparedStatement}
+	 * @param array $args      the variables as defined in the {@link GenericPreparedStatement}
 	 * @param callable|null $onSuccess an optional callback when the query has succeeded: <code>function(int $affectedRows) : void{}</code>
 	 * @param callable|null $onError   an optional callback when the query has failed: <code>function({@link SqlError} $error) : void{}</code>
 	 */
@@ -120,7 +120,7 @@ interface DataConnector{
 	 * Executes an insert query that results in an insert ID.
 	 *
 	 * @param string        $queryName  the {@link GenericPreparedStatement} query name
-	 * @param mixed[]       $args       the variables as defined in the {@link GenericPreparedStatement}
+	 * @param array $args       the variables as defined in the {@link GenericPreparedStatement}
 	 * @param callable|null $onInserted an optional callback when the query has succeeded: <code>function(int $insertId, int $affectedRows) : void{}</code>
 	 * @param callable|null $onError    an optional callback when the query has failed: <code>function({@link SqlError} $error) : void{}</code>
 	 */
@@ -144,7 +144,7 @@ interface DataConnector{
 	 * ```
 	 *
 	 * @param string  $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[] $args      the variables as defined in the {@link GenericPreparedStatement}
+	 * @param array $args      the variables as defined in the {@link GenericPreparedStatement}
 	 * @return Generator<mixed, Await::RESOLVE|Await::REJECT, mixed, array{int, int}>
 	 */
 	public function asyncInsert(string $queryName, array $args = []) : Generator;
@@ -153,7 +153,7 @@ interface DataConnector{
 	 * Executes a select query that returns an SQL result set. This does not strictly need to be SELECT queries -- reflection queries like MySQL's <code>SHOW TABLES</code> query are also allowed.
 	 *
 	 * @param string        $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[]       $args      the variables as defined in the {@link GenericPreparedStatement}
+	 * @param array $args      the variables as defined in the {@link GenericPreparedStatement}
 	 * @param callable|null $onSelect  an optional callback when the query has succeeded: <code>function(array[] $rows, {@link SqlColumnInfo} $columns) : void{}</code>
 	 * @param callable|null $onError   an optional callback when the query has failed: <code>function({@link SqlError} $error) : void{}</code>
 	 */
@@ -171,7 +171,7 @@ interface DataConnector{
 	 * If {@link SqlColumnInfo} is needed, use `asyncSelectWithInfo` instead.
 	 *
 	 * @param string  $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[] $args      the variables as defined in the {@link GenericPreparedStatement}
+	 * @param array $args      the variables as defined in the {@link GenericPreparedStatement}
 	 * @return Generator<mixed, Await::RESOLVE|Await::REJECT, mixed, array[] $rows>
 	 */
 	public function asyncSelect(string $queryName, array $args = []) : Generator;
@@ -191,7 +191,7 @@ interface DataConnector{
 	 * ```
 	 *
 	 * @param string  $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[] $args      the variables as defined in the {@link GenericPreparedStatement}
+	 * @param array $args      the variables as defined in the {@link GenericPreparedStatement}
 	 * @return Generator<mixed, Await::RESOLVE|Await::REJECT, mixed, array{int, int}>
 	 */
 	public function asyncSelectWithInfo(string $queryName, array $args = []) : Generator;

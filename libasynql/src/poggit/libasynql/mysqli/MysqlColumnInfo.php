@@ -22,13 +22,14 @@ declare(strict_types=1);
 
 namespace poggit\libasynql\mysqli;
 
+use JetBrains\PhpStorm\Pure;
 use poggit\libasynql\result\SqlColumnInfo;
 
 class MysqlColumnInfo extends SqlColumnInfo{
-	private $flags;
-	private $mysqlType;
+	private int $flags;
+	private int $mysqlType;
 
-	public function __construct(string $name, string $type, int $flags, int $mysqlType){
+	#[Pure] public function __construct(string $name, string $type, int $flags, int $mysqlType){
 		parent::__construct($name, $type);
 		$this->flags = $flags;
 		$this->mysqlType = $mysqlType;

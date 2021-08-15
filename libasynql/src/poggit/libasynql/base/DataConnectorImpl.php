@@ -24,6 +24,7 @@ namespace poggit\libasynql\base;
 
 use Error;
 use Exception;
+use Generator;
 use InvalidArgumentException;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\Terminal;
@@ -49,20 +50,15 @@ use function str_replace;
 use function usleep;
 
 class DataConnectorImpl implements DataConnector{
-	/** @var Plugin */
-	private $plugin;
-	/** @var SqlThread */
-	private $thread;
-	/** @var bool */
-	private $loggingQueries;
+	private Plugin $plugin;
+	private SqlThread $thread;
+	private bool $loggingQueries;
 	/** @var GenericStatement[] */
-	private $queries = [];
+	private array $queries = [];
 	/** @var callable[] */
-	private $handlers = [];
-	/** @var int */
-	private $queryId = 0;
-	/** @var string|null */
-	private $placeHolder;
+	private array $handlers = [];
+	private int $queryId = 0;
+	private ?string $placeHolder;
 
 	/**
 	 * @param Plugin      $plugin
@@ -151,8 +147,7 @@ class DataConnectorImpl implements DataConnector{
 		$onSuccess = yield Await::RESOLVE;
 		$onError = yield Await::REJECT;
 		$this->executeChange($queryName, $args, $onSuccess, $onError);
-		$affectedRows = yield Await::ONCE;
-		return $affectedRows;
+        return yield Await::ONCE;
 	}
 
 	public function executeInsert(string $queryName, array $args = [], ?callable $onInserted = null, ?callable $onError = null) : void{
@@ -177,14 +172,13 @@ class DataConnectorImpl implements DataConnector{
 		$this->executeInsert($queryName, $args, static function(int $insertId, int $affectedRows) use($onSuccess) : void{
 			$onSuccess([$insertId, $affectedRows]);
 		}, $onError);
-		$affectedRows = yield Await::ONCE;
-		return $affectedRows;
+        return yield Await::ONCE;
 	}
 
 	public function executeSelect(string $queryName, array $args = [], ?callable $onSelect = null, ?callable $onError = null) : void{
 		$this->executeImpl($queryName, $args, SqlThread::MODE_SELECT, function(SqlSelectResult $result) use ($onSelect){
 			if($onSelect !== null){
-				$onSelect($result->getRows(), $result->getColumnInfo());
+				$onSelect($result->getRows());
 			}
 		}, $onError);
 	}
@@ -200,11 +194,10 @@ class DataConnectorImpl implements DataConnector{
 	public function asyncSelect(string $queryName, array $args = []) : Generator{
 		$onSuccess = yield Await::RESOLVE;
 		$onError = yield Await::REJECT;
-		$this->executeSelect($queryName, $args, static function(array $rows, SqlColumnInfo $columns) use($onSuccess) : void{
+		$this->executeSelect($queryName, $args, static function(array $rows) use($onSuccess) : void{
 			$onSuccess($rows);
 		}, $onError);
-		$rows = yield Await::ONCE;
-		return $rows;
+        return yield Await::ONCE;
 	}
 
 	public function asyncSelectWithInfo(string $queryName, array $args = []) : Generator{
@@ -213,8 +206,7 @@ class DataConnectorImpl implements DataConnector{
 		$this->executeInsert($queryName, $args, static function(array $rows, SqlColumnInfo $columns) use($onSuccess) : void{
 			$onSuccess([$rows, $columns]);
 		}, $onError);
-		$rows = yield Await::ONCE;
-		return $rows;
+        return yield Await::ONCE;
 	}
 
 	private function executeImpl(string $queryName, array $args, int $mode, callable $handler, ?callable $onError) : void{
@@ -244,8 +236,7 @@ class DataConnectorImpl implements DataConnector{
 						for($i = count($newTrace) - 1, $j = count($oldTrace) - 1; $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j]; --$i, --$j){
 							array_pop($newTrace);
 						}
-						/** @noinspection PhpUndefinedMethodInspection */
-						$prop->setValue($e, array_merge($newTrace, [
+                        $prop->setValue($e, array_merge($newTrace, [
 							[
 								"function" => Terminal::$COLOR_YELLOW . "--- below is the original stack trace ---" . Terminal::$FORMAT_RESET,
 							],
@@ -265,8 +256,7 @@ class DataConnectorImpl implements DataConnector{
 						for($i = count($newTrace) - 1, $j = count($oldTrace) - 1; $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j]; --$i, --$j){
 							array_pop($newTrace);
 						}
-						/** @noinspection PhpUndefinedMethodInspection */
-						$errorProperty->setValue($e, array_merge($newTrace, [
+                        $errorProperty->setValue($e, array_merge($newTrace, [
 							[
 								"function" => Terminal::$COLOR_YELLOW . "--- below is the original stack trace ---" . Terminal::$FORMAT_RESET,
 							],

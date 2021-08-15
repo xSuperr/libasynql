@@ -44,8 +44,7 @@ use function usleep;
  * An utility class providing convenient access to the API
  */
 final class libasynql{
-	/** @var bool */
-	private static $packaged;
+	private static bool $packaged;
 
 	public static function isPackaged() : bool{
 		return self::$packaged;

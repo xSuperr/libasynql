@@ -53,7 +53,7 @@ $STRUCT = "interface";
 $sqlFiles = [];
 
 $i = 4;
-while(isset($argv[$i]) && strpos($argv[$i], "--") === 0){
+while(isset($argv[$i]) && str_starts_with($argv[$i], "--")){
 	if($argv[$i] === "--prefix"){
 		$prefix = $argv[$i + 1];
 		$i += 2;

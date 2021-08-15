@@ -39,28 +39,24 @@ use const PREG_SPLIT_NO_EMPTY;
 use const PREG_SPLIT_OFFSET_CAPTURE;
 
 class GenericStatementFileParser{
-	/** @var string|null */
-	private $fileName;
+	private ?string $fileName;
 	/** @var resource */
 	private $fh;
-	/** @var int */
-	private $lineNo = 0;
+	private int $lineNo = 0;
 
 	/** @var string[] */
-	private $identifierStack = [];
-	/** @var bool */
-	private $parsingQuery = false;
+	private array $identifierStack = [];
+	private bool $parsingQuery = false;
 	/** @var string[] */
-	private $docLines = [];
+	private array $docLines = [];
 	/** @var GenericVariable[] */
-	private $variables = [];
+	private array $variables = [];
 	/** @var string[] */
-	private $buffer = [];
+	private array $buffer = [];
 
-	/** @var string|null */
-	private $knownDialect = null;
+	private ?string $knownDialect = null;
 	/** @var GenericStatement[] */
-	private $results = [];
+	private array $results = [];
 
 	/**
 	 * @param string|null $fileName
@@ -116,7 +112,7 @@ class GenericStatementFileParser{
 	}
 
 	private function tryCommand(string $line) : bool{
-		if(strpos($line, "-- #") !== 0){
+		if(!str_starts_with($line, "-- #")){
 			return false;
 		}
 
@@ -156,7 +152,6 @@ class GenericStatementFileParser{
 	}
 
 	private function dialectCommand(array $args) : void{
-		// dialect command
 		if($this->knownDialect !== null){
 			$this->error("Dialect declared more than once");
 		}
@@ -195,7 +190,7 @@ class GenericStatementFileParser{
 			}
 
 			$query = implode("\n", $this->buffer);
-			$doc = implode("\n", $this->docLines); // double line breaks => single line breaks
+			$doc = implode("\n", $this->docLines);
 			assert($this->knownDialect !== null);
 			$stmt = GenericStatementImpl::forDialect($this->knownDialect, implode(".", $this->identifierStack), $query, $doc, $this->variables, $this->fileName, $this->lineNo);
 			$this->docLines = [];
@@ -207,7 +202,7 @@ class GenericStatementFileParser{
 				$this->error("Duplicate query name ({$stmt->getName()})");
 			}
 			$this->results[$stmt->getName()] = $stmt;
-		} // end query
+		}
 
 		array_pop($this->identifierStack);
 	}
@@ -243,8 +238,6 @@ class GenericStatementFileParser{
 	}
 
 	/**
-	 * @param string $problem
-	 * @return GenericStatementFileParseException
 	 * @throw GenericStatementFileParseException
 	 */
 	private function error(string $problem) : GenericStatementFileParseException{

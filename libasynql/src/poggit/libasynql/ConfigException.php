@@ -23,9 +23,10 @@ declare(strict_types=1);
 namespace poggit\libasynql;
 
 use InvalidArgumentException;
+use JetBrains\PhpStorm\Pure;
 
 class ConfigException extends InvalidArgumentException{
-	public function __construct(string $message = ""){
+	#[Pure] public function __construct(string $message = ""){
 		parent::__construct("Config problem: " . $message);
 	}
 }

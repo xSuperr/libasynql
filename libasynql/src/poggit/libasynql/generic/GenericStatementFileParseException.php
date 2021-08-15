@@ -23,13 +23,14 @@ declare(strict_types=1);
 namespace poggit\libasynql\generic;
 
 use InvalidArgumentException;
+use JetBrains\PhpStorm\Pure;
 
 class GenericStatementFileParseException extends InvalidArgumentException{
-	private $problem;
-	private $lineNo;
-	private $queryFile;
+	private string $problem;
+	private int $lineNo;
+	private string $queryFile;
 
-	public function __construct(string $problem, int $lineNo, string $file = null){
+	#[Pure] public function __construct(string $problem, int $lineNo, string $file = null){
 		$this->problem = $problem;
 		$this->lineNo = $lineNo;
 		$this->queryFile = $file ?? "SQL file";

@@ -25,8 +25,8 @@ namespace poggit\libasynql\result;
 use poggit\libasynql\SqlResult;
 
 class SqlSelectResult extends SqlResult{
-	private $columnInfo;
-	private $rows;
+	private array $columnInfo;
+	private array $rows;
 
 	/**
 	 * SqlSelectResult constructor.

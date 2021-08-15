@@ -54,7 +54,7 @@ use function unserialize;
 
 class MysqliThread extends SqlSlaveThread{
 	/** @var string */
-	private $credentials;
+	private string $credentials;
 
 	public static function createFactory(MysqlCredentials $credentials) : Closure{
 		return function(SleeperNotifier $notifier, QuerySendQueue $bufferSend, QueryRecvQueue $bufferRecv) use ($credentials){
@@ -67,31 +67,31 @@ class MysqliThread extends SqlSlaveThread{
 		parent::__construct($notifier, $bufferSend, $bufferRecv);
 	}
 
-	protected function createConn(&$mysqli) : ?string{
+	protected function createConn(&$resource) : ?string{
 		/** @var MysqlCredentials $cred */
 		$cred = unserialize($this->credentials);
 		try{
-			$mysqli = $cred->newMysqli();
+			$resource = $cred->newMysqli();
 			return null;
 		}catch(SqlError $e){
 			return $e->getErrorMessage();
 		}
 	}
 
-	protected function executeQuery($mysqli, int $mode, string $query, array $params) : SqlResult{
-		assert($mysqli instanceof mysqli);
+	protected function executeQuery(mixed $resource, int $mode, string $query, array $params) : SqlResult{
+		assert($resource instanceof mysqli);
 		/** @var MysqlCredentials $cred */
 		$cred = unserialize($this->credentials);
-		while(!$mysqli->ping()){
-			$cred->reconnectMysqli($mysqli);
+		while(!$resource->ping()){
+			$cred->reconnectMysqli($resource);
 			if($this->connError === null){
 				break;
 			}
 		}
 		if(empty($params)){
-			$result = $mysqli->query($query);
+			$result = $resource->query($query);
 			if($result === false){
-				throw new SqlError(SqlError::STAGE_EXECUTE, $mysqli->error, $query, []);
+				throw new SqlError(SqlError::STAGE_EXECUTE, $resource->error, $query, []);
 			}
 			switch($mode){
 				case SqlThread::MODE_GENERIC:
@@ -101,10 +101,10 @@ class MysqliThread extends SqlSlaveThread{
 						$result->close();
 					}
 					if($mode === SqlThread::MODE_INSERT){
-						return new SqlInsertResult($mysqli->affected_rows, $mysqli->insert_id);
+						return new SqlInsertResult($resource->affected_rows, $resource->insert_id);
 					}
 					if($mode === SqlThread::MODE_CHANGE){
-						return new SqlChangeResult($mysqli->affected_rows);
+						return new SqlChangeResult($resource->affected_rows);
 					}
 					return new SqlResult();
 
@@ -114,9 +114,9 @@ class MysqliThread extends SqlSlaveThread{
 					return $ret;
 			}
 		}else{
-			$stmt = $mysqli->prepare($query);
+			$stmt = $resource->prepare($query);
 			if(!($stmt instanceof mysqli_stmt)){
-				throw new SqlError(SqlError::STAGE_PREPARE, $mysqli->error, $query, $params);
+				throw new SqlError(SqlError::STAGE_PREPARE, $resource->error, $query, $params);
 			}
 			$types = implode(array_map(function($param) use ($query, $params){
 				if(is_string($param)){
@@ -231,9 +231,9 @@ class MysqliThread extends SqlSlaveThread{
 		return new SqlSelectResult($columns, $rows);
 	}
 
-	protected function close(&$mysqli) : void{
-		assert($mysqli instanceof mysqli);
-		$mysqli->close();
+	protected function close(&$resource) : void{
+		assert($resource instanceof mysqli);
+		$resource->close();
 	}
 
 	public function getThreadName() : string{

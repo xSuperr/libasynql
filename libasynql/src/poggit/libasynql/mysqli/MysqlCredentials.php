@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace poggit\libasynql\mysqli;
 
+use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 use mysqli;
 use poggit\libasynql\ConfigException;
@@ -29,18 +30,12 @@ use poggit\libasynql\SqlError;
 use function strlen;
 
 class MysqlCredentials implements JsonSerializable{
-	/** @var string $host */
-	private $host;
-	/** @var string $username */
-	private $username;
-	/** @var string $password */
-	private $password;
-	/** @var string $schema */
-	private $schema;
-	/** @var int $port */
-	private $port;
-	/** @var string $socket */
-	private $socket;
+	private string $host;
+	private string $username;
+	private string $password;
+	private string $schema;
+	private int $port;
+	private string $socket;
 
 	/**
 	 * Creates a new {@link MysqlCredentials} instance from an array (e.g. from Config), with the following defaults:
@@ -139,7 +134,7 @@ class MysqlCredentials implements JsonSerializable{
 		];
 	}
 
-	public function jsonSerialize() : array{
+	#[ArrayShape(["host" => "string", "username" => "string", "password" => "string", "schema" => "string", "port" => "int", "socket" => "string"])] public function jsonSerialize() : array{
 		return [
 			"host" => $this->host,
 			"username" => $this->username,

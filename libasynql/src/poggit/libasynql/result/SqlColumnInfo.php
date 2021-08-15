@@ -31,8 +31,8 @@ class SqlColumnInfo{
 	public const TYPE_NULL = "null";
 	public const TYPE_OTHER = "unknown";
 
-	private $name;
-	private $type;
+	private string $name;
+	private string $type;
 
 	public function __construct(string $name, string $type){
 		$this->name = $name;

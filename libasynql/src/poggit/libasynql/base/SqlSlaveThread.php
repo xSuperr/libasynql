@@ -35,17 +35,16 @@ use const PTHREADS_INHERIT_CONSTANTS;
 use const PTHREADS_INHERIT_INI;
 
 abstract class SqlSlaveThread extends Thread implements SqlThread{
-	/** @var SleeperNotifier */
-	private $notifier;
+	private SleeperNotifier $notifier;
 
-	private static $nextSlaveNumber = 0;
+	private static int $nextSlaveNumber = 0;
 
-	protected $slaveNumber;
-	protected $bufferSend;
-	protected $bufferRecv;
-	protected $connCreated = false;
-	protected $connError;
-	protected $busy = false;
+	protected int $slaveNumber;
+	protected QuerySendQueue $bufferSend;
+	protected QueryRecvQueue $bufferRecv;
+	protected bool $connCreated = false;
+	protected ?string $connError;
+	protected bool $busy = false;
 
 	protected function __construct(SleeperNotifier $notifier, QuerySendQueue $bufferSend = null, QueryRecvQueue $bufferRecv = null){
 		$this->notifier = $notifier;
@@ -55,7 +54,6 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->bufferRecv = $bufferRecv ?? new QueryRecvQueue();
 
 		if(!libasynql::isPackaged()){
-			/** @noinspection PhpUndefinedMethodInspection */
 			/** @noinspection NullPointerExceptionInspection */
 			/** @var ClassLoader $cl */
 			$cl = Server::getInstance()->getPluginManager()->getPlugin("DEVirion")->getVirionClassLoader();
@@ -93,9 +91,6 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->close($resource);
 	}
 
-	/**
-	 * @return bool
-	 */
 	public function isBusy(): bool {
 		return $this->busy;
 	}
@@ -140,15 +135,9 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 	protected abstract function createConn(&$resource) : ?string;
 
 	/**
-	 * @param mixed   $resource
-	 * @param int     $mode
-	 * @param string  $query
-	 * @param mixed[] $params
-	 *
-	 * @return SqlResult
 	 * @throws SqlError
 	 */
-	protected abstract function executeQuery($resource, int $mode, string $query, array $params) : SqlResult;
+	protected abstract function executeQuery(mixed $resource, int $mode, string $query, array $params) : SqlResult;
 
 
 	protected abstract function close(&$resource) : void;

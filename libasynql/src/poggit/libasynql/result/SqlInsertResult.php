@@ -22,11 +22,13 @@ declare(strict_types=1);
 
 namespace poggit\libasynql\result;
 
+use JetBrains\PhpStorm\Pure;
+
 class SqlInsertResult extends SqlChangeResult{
 	/** @var int */
-	private $insertId;
+	private int $insertId;
 
-	public function __construct(int $affectedRows, int $insertId){
+	#[Pure] public function __construct(int $affectedRows, int $insertId){
 		parent::__construct($affectedRows);
 		$this->insertId = $insertId;
 	}

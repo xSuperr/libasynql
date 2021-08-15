@@ -34,7 +34,6 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
-use function strpos;
 
 class SqliteStatementImpl extends GenericStatementImpl{
 	public function getDialect() : string{
@@ -45,7 +44,6 @@ class SqliteStatementImpl extends GenericStatementImpl{
 		if($variable->isList()){
 			assert(is_array($value));
 
-			// IN () works with SQLite3.
 			$unlist = $variable->unlist();
 			return "(" . implode(",", array_map(function($value) use ($placeHolder, $unlist, &$outArgs){
 					return $this->formatVariable($unlist, $value, $placeHolder, $outArgs);
@@ -75,7 +73,7 @@ class SqliteStatementImpl extends GenericStatementImpl{
 
 			case GenericVariable::TYPE_STRING:
 				assert(is_string($value));
-				if(strpos($value, "\0") !== false){
+				if(str_contains($value, "\0")){
 					return "X'" . bin2hex($value) . "'";
 				}
 				return "'" . SQLite3::escapeString($value) . "'";

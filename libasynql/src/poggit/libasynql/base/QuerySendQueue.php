@@ -22,16 +22,15 @@ declare(strict_types=1);
 
 namespace poggit\libasynql\base;
 
+use JetBrains\PhpStorm\Pure;
 use Threaded;
 use function serialize;
 
 class QuerySendQueue extends Threaded{
-	/** @var bool */
-	private $invalidated = false;
-	/** @var Threaded */
-	private $queries;
+	private bool $invalidated = false;
+	private Threaded $queries;
 
-	public function __construct(){
+	#[Pure] public function __construct(){
 		$this->queries = new Threaded();
 	}
 
@@ -61,9 +60,6 @@ class QuerySendQueue extends Threaded{
 		});
 	}
 
-	/**
-	 * @return bool
-	 */
 	public function isInvalidated(): bool {
 		return $this->invalidated;
 	}
